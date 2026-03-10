@@ -24,17 +24,13 @@ button:hover{background:white;color:black;}
 </style>
 </head>
 <body>
-
 <canvas id="stars"></canvas>
-
 <div class="logo" id="logo">THE LOGIN</div>
-
 <div class="center" id="intro">
 <h2 id="status">LAUNCHING SOON</h2>
 <div>2026</div>
 <button id="enter">ENTER THE LOGIN</button>
 </div>
-
 <div id="sequence">
 <div class="title" id="title">THE LOGIN</div>
 <div class="subtitle" id="subtitle">INTERNATIONAL ENTERTAINMENT GROUP</div>
@@ -42,45 +38,121 @@ button:hover{background:white;color:black;}
 <div class="locations" id="locations">USA — NEW ZEALAND — AUSTRALIA</div>
 <div class="launch" id="launch">LAUNCHING SOON</div>
 </div>
-
 <div class="footer" id="footer">© 2026 THE LOGIN</div>
-
 <script>
-const canvas=document.getElementById("stars");
-const ctx=canvas.getContext("2d");
-let stars=[];let targets=[];let forming=false;let glow=false;
+var canvas = document.getElementById("stars");
+var ctx = canvas.getContext("2d");
+var stars = [];
+var targets = [];
+var forming = false;
+var glow = false;
 
-function resize(){
-canvas.width=window.innerWidth;
-canvas.height=window.innerHeight;
-stars=[];
-for(let i=0;i<400;i++){
-stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,size:Math.random()*2,alpha:0.3+Math.random()*0.5});
-}
-}
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  stars = [];
 
-function animate(){
-ctx.clearRect(0,0,canvas.width,canvas.height);
-stars.forEach(s=>{
-ctx.beginPath();
-ctx.arc(s.x,s.y,s.size,0,Math.PI*2);
-ctx.fillStyle=`rgba(255,255,255,${s.alpha})`;
-ctx.fill();
-});
-requestAnimationFrame(animate);
-}
+  for (var i = 0; i < 400; i += 1) {
+    stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 2,
+      alpha: 0.3 + Math.random() * 0.5
+    });
+  }
 
-document.getElementById("enter").onclick=()=>{
-document.getElementById("status").innerText="ACCESS GRANTED";
-document.getElementById("intro").style.display="none";
-document.getElementById("logo").style.display="none";
-document.getElementById("sequence").style.display="block";
+  targets = [];
+  createTargets();
 }
 
-window.addEventListener("resize",resize);
+function createTargets() {
+  var off = document.createElement("canvas");
+  var offCtx = off.getContext("2d");
+
+  off.width = canvas.width;
+  off.height = canvas.height;
+
+  offCtx.fillStyle = "white";
+  offCtx.font = "bold " + Math.max(48, Math.floor(canvas.width * 0.12)) + "px Montserrat";
+  offCtx.textAlign = "center";
+  offCtx.fillText("THE LOGIN", canvas.width / 2, canvas.height * 0.32);
+
+  var data = offCtx.getImageData(0, 0, off.width, off.height);
+
+  for (var y = 0; y < off.height; y += 8) {
+    for (var x = 0; x < off.width; x += 8) {
+      var idx = (y * off.width + x) * 4;
+      if (data.data[idx + 3] > 150) {
+        targets.push({ x: x, y: y });
+      }
+    }
+  }
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (var i = 0; i < stars.length; i += 1) {
+    var s = stars[i];
+
+    if (!forming) {
+      s.y += 0.05;
+      if (s.y > canvas.height) {
+        s.y = 0;
+      }
+    }
+
+    if (forming && targets[i]) {
+      s.x += (targets[i].x - s.x) * 0.03;
+      s.y += (targets[i].y - s.y) * 0.03;
+    }
+
+    if (glow) {
+      s.alpha += 0.02;
+      if (s.alpha > 1) {
+        s.alpha = 1;
+      }
+    }
+
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,255,255," + s.alpha + ")";
+    ctx.fill();
+  }
+
+  requestAnimationFrame(animate);
+}
+
+function startSequence() {
+  setTimeout(function () { document.getElementById("title").classList.add("fade"); }, 500);
+  setTimeout(function () { document.getElementById("subtitle").classList.add("fade"); }, 2000);
+  setTimeout(function () { document.getElementById("tagline").classList.add("fade"); }, 3500);
+  setTimeout(function () { document.getElementById("locations").classList.add("fade"); }, 5000);
+  setTimeout(function () { document.getElementById("launch").classList.add("fade"); }, 6500);
+  setTimeout(function () { document.getElementById("footer").classList.add("fade"); }, 8000);
+}
+
+document.getElementById("enter").onclick = function () {
+  document.getElementById("status").innerText = "AUTHENTICATING...";
+
+  setTimeout(function () { forming = true; }, 2000);
+  setTimeout(function () { document.getElementById("status").innerText = "ACCESS GRANTED"; }, 3000);
+  setTimeout(function () { glow = true; }, 4500);
+
+  setTimeout(function () {
+    forming = false;
+    glow = false;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    document.getElementById("intro").style.display = "none";
+    document.getElementById("logo").style.display = "none";
+    document.getElementById("sequence").style.display = "block";
+    startSequence();
+  }, 6000);
+};
+
+window.addEventListener("resize", resize);
 resize();
 animate();
 </script>
-
 </body>
 </html>
